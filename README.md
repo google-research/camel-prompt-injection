@@ -1,47 +1,131 @@
-# `CaMeL`: [Defeating Prompt Injections by Design](https://arxiv.org/abs/2503.18813)
+# CaMeL: Secure Python Execution for LLM Tool Sandboxing
 
-Edoardo Debenedetti<sup>1,3</sup>, Ilia Shumailov<sup>2</sup>, Tianqi Fan<sup>1</sup>, Jamie Hayes<sup>2</sup>, Nicholas Carlini<sup>2</sup>, Daniel Fabian<sup>1</sup>, Christoph Kern<sup>1</sup>, Chongyang Shi<sup>2</sup>, Florian Tramèr<sup>3</sup>
+A fast, safe Python interpreter for sandboxing code execution in LLM tool-calling environments. CaMeL enforces security policies and tracks data provenance through program execution.
 
-<sup>1</sup>Google, <sup>2</sup>Google DeepMind, and <sup>3</sup>ETH Zurich
+**Research paper**: [Defeating Prompt Injections by Design](https://arxiv.org/abs/2503.18813)
 
-> [!WARNING]
-> This is a research artifact released to reproduce the results in our paper. The interpreter implementation likely contains bugs (e.g., it might throw uncaught exceptions and crash) and the implementation might not be fully secure.
->
-> This is **not** a Google product, and we are not planning to provide support for and/or maintain this codebase.
+Original authors: Edoardo Debenedetti, Ilia Shumailov, Tianqi Fan, Jamie Hayes, Nicholas Carlini, Daniel Fabian, Christoph Kern, Chongyang Shi, Florian Tramèr (Google, Google DeepMind, ETH Zurich)
 
-## Pre-requisites
+## Why CaMeL?
 
-1. Install `uv` via the [official instructions](https://docs.astral.sh/uv/getting-started/installation/).
-2. Rename `.env.example` to `.env` and populate it with your API keys.
-3. `uv` will install all dependencies as soon as you run `uv run ...`.
+When LLMs call tools, they execute untrusted code. CaMeL provides:
 
-## Running running the defense against AgentDojo
+- 🔒 **Security by Design**: Intentionally restricted Python subset (no imports, eval, or dangerous operations)
+- 📊 **Data Provenance Tracking**: Knows which values came from user input vs. tool responses
+- 🛡️ **Security Policies**: Define fine-grained rules like "only allow this operation on user-provided data"
+- ⚡ **Fast Execution**: Custom interpreter optimized for tool-calling workloads
+- 🐍 **Familiar Syntax**: Standard Python semantics for supported features
+
+## Quick Start
+
+### Installation
 
 ```bash
-uv run --env-file .env main.py MODEL_NAME [--use-original] [--ad_defense] [--reasoning-effort] [--thinking_budget_tokens] [--run-attack] [--replay-with-policies] [--eval_mode]
+pip install camel-interpreter
 ```
 
-More details on the various CLI arguments can be found by running `uv run main.py --help`
+### Basic Usage
 
-## FAQ
+```python
+import ast
+from camel.interpreter.interpreter import camel_eval, EvalArgs
+from camel.interpreter.namespace import Namespace
+from camel.security_policy import NoSecurityPolicyEngine
+from camel.interpreter.interpreter import MetadataEvalMode
 
-> How do I try a new/different model?
+# Code the LLM wants to execute
+code = """
+prices = [10, 20, 30]
+total = sum(prices)
+"""
 
-You can add it to the [`models.py`](src/camel/models.py) file, in the `_supported_model_names` variable. The keys are the model names with the given provider (check the provider's API) and the values is what the model says when asked "what model are you?". Keep in mind that OpenAI reasoning models are stored in the `_oai_thinking_models` variable instead.
+# Evaluate it safely
+ast_tree = ast.parse(code)
+result, namespace, _, _ = camel_eval(
+    ast_tree,
+    Namespace.with_builtins(),
+    [],
+    [],
+    EvalArgs(NoSecurityPolicyEngine(), MetadataEvalMode.NORMAL)
+)
 
-> If I have questions on the codebase how can I reach out?
+print(namespace.variables["total"])  # CaMeLInt(60, ...)
+```
 
-Please open an issue in this repository. Please note that we are not planning to fix bugs as this codebase is just meant as a research artifact.
+## What's Supported?
 
-## Running tests and linters
+See [SCOPE.md](SCOPE.md) for a complete list of supported Python features.
+
+**Quick summary**:
+- ✅ Variables, assignments, arithmetic
+- ✅ Lists, dicts, sets, tuples
+- ✅ If/elif/else, for loops, comprehensions
+- ✅ Function calls and methods
+- ✅ Classes and `@dataclass` decorator
+- ❌ Imports, eval/exec, try/except
+- ❌ While loops, async/await, decorators (except @dataclass)
+- ❌ Slicing (`x[1:3]`)
+
+## Security Policies
+
+Define which operations are allowed based on data provenance:
+
+```python
+from camel.security_policy import SecurityPolicyEngine
+
+class MyPolicy(SecurityPolicyEngine):
+    def check_policy(self, function_name, args, dependencies):
+        # Allow user-provided data to be modified
+        # Block tool-controlled data manipulation
+        pass
+```
+
+See [docs/security-policies.md](docs/security-policies.md) for examples.
+
+## Development
+
+### Requirements
+
+- Python 3.10+
+- `uv` for dependency management
+
+### Setup
 
 ```bash
+git clone https://github.com/yourusername/camel-interpreter.git
+cd camel-interpreter
+uv sync
+```
+
+### Running Tests
+
+```bash
+uv run pytest tests/
 uv run ruff check --fix
-uv run format
 uv run pyright
-uv run pytest
 ```
 
-This is not an officially supported Google product. This project is not
-eligible for the [Google Open Source Software Vulnerability Rewards
-Program](https://bughunters.google.com/open-source-security).
+### Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+
+## License
+
+This project is licensed under the [Apache License 2.0](LICENSE).
+
+## Citation
+
+If you use CaMeL in research, please cite the original paper:
+
+```bibtex
+@article{debenedetti2025camel,
+  title={CaMeL: Defeating Prompt Injections by Design},
+  author={Debenedetti, Edoardo and others},
+  journal={arXiv preprint arXiv:2503.18813},
+  year={2025}
+}
+```
+
+## Acknowledgments
+
+This is a community-maintained fork of the original research artifact by Google / Google DeepMind / ETH Zurich.

@@ -446,7 +446,7 @@ def _eval_subscript_load(
             return EvalResult(_update_error_with_node(evaled_obj_res, node), namespace, tool_calls_chain, dependencies)
         case result.Ok(v):
             obj = v
-    type_error = result.Error(CaMeLException(TypeError(f"'{obj.raw_type}' object is not subscriptable'"), (node,), ()))
+    type_error = result.Error(CaMeLException(TypeError(f"'{obj.raw_type}' object is not subscriptable"), (node,), ()))
 
     evaled_slice_res, namespace, tool_calls_chain, dependencies = camel_eval(
         node.slice, namespace, tool_calls_chain, dependencies, eval_args

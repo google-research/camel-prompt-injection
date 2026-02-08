@@ -148,7 +148,7 @@ for i in [0, 1, 2]:
             expected_namespace=ns.Namespace(
                 {
                     # TODO: Unclear why the double dependency. Leaving for now as it does not change anything in practice
-                    "a": _a_2.new_with_dependencies((_a_list, _a_list)),
+                    "a": _a_2.new_with_dependencies((_a_list,)),
                     "i": _a_2.new_with_dependencies((_a_list,)),
                 }
             ),

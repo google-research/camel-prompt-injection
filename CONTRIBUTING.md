@@ -1,34 +1,73 @@
-# How to contribute
+# Contributing to CaMeL
 
-We'd love to accept your patches and contributions to this project.
+Thank you for your interest in contributing to CaMeL! We welcome bug reports, feature requests, and pull requests.
 
-## Before you begin
+## Code of Conduct
 
-### Sign our Contributor License Agreement
+Be respectful and constructive. We're building this together.
 
-Contributions to this project must be accompanied by a
-[Contributor License Agreement](https://cla.developers.google.com/about) (CLA).
-You (or your employer) retain the copyright to your contribution; this simply
-gives us permission to use and redistribute your contributions as part of the
-project.
+## Reporting Bugs
 
-If you or your current employer have already signed the Google CLA (even if it
-was for a different project), you probably don't need to do it again.
+Found a bug? Please open an issue with:
 
-Visit <https://cla.developers.google.com/> to see your current agreements or to
-sign a new one.
+1. **Minimum reproducible example** — code that demonstrates the problem
+2. **Expected behavior** — what should happen
+3. **Actual behavior** — what does happen
+4. **Environment** — Python version, OS, installation method
 
-### Review our community guidelines
+## Feature Requests
 
-This project follows
-[Google's Open Source Community Guidelines](https://opensource.google/conduct/).
+Before requesting a feature, **check** [SCOPE.md](SCOPE.md):
+- If it's listed as "Intentionally Unsupported", we probably won't add it
+- If you have a strong use case, open an issue describing it
 
-## Contribution process
+## How to Contribute Code
 
-### Code reviews
+### 1. Fork & Setup
 
-All submissions, including submissions by project members, require review. We
-use GitHub pull requests for this purpose. Consult
-[GitHub Help](https://help.github.com/articles/about-pull-requests/) for more
-information on using pull requests.
+```bash
+git clone https://github.com/yourusername/camel-interpreter.git
+cd camel-interpreter
+uv sync
+```
+
+### 2. Create a Branch
+
+```bash
+git checkout -b fix/my-bug-fix
+```
+
+### 3. Make Changes & Test
+
+```bash
+uv run pytest tests/
+uv run ruff check --fix
+uv run pyright
+```
+
+### 4. Commit & Push
+
+```bash
+git commit -m "fix(interpreter): describe your fix"
+git push origin fix/my-bug-fix
+```
+
+### 5. Submit Pull Request
+
+Reference any related issues: "Fixes #123"
+
+## Guidelines
+
+✅ **We Accept**:
+- Bug fixes with tests
+- Documentation improvements
+- Test coverage improvements
+- Performance improvements
+
+❌ **Check First**:
+- New unsupported Python features (see [SCOPE.md](SCOPE.md))
+- Large refactors
+- Breaking API changes
+
+**Questions?** Open an issue to discuss before coding.
 
